@@ -11,7 +11,7 @@ def get():
 
 @app.route("/v1/log", methods=["GET", "POST"])
 def log():
-    print(request.args)
+    print(request.values)
     print(request.json)
     return ""
 
