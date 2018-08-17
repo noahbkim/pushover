@@ -1,0 +1,12 @@
+# Developer
+.idea/
+__pycache__
+
+# macOS
+.DS_Store
+
+# Testing data
+certificates.p12
+icon.png
+website.json
+pushPackage*
