@@ -9,8 +9,9 @@ def get():
     send_file("pushPackage.zip")
 
 
-@app.route("/v1/log", methods=["POST"])
+@app.route("/v1/log", methods=["GET", "POST"])
 def log():
+    print(request.args)
     print(request.json)
     return ""
 
