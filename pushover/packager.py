@@ -18,20 +18,6 @@ from hashlib import sha512
 PathLike = Union[Path, str]
 
 
-HELP_IMAGE = (
-    "either a 128x128 or larger PNG to generate an icon set from or a folder containing the appropriate sizes of icons"
-    "from which to create an icon package"
-)
-
-HELP_WEBSITE = (
-    "a static JSON file containing website data for the Safari push API"
-)
-
-HELP_CERTIFICATES = (
-    "your signed developer certificates allowing you to make Safari push notifications"
-)
-
-
 def sha512_file(path: PathLike):
     """Get the sha256 checksum of a file."""
 
@@ -45,7 +31,7 @@ def sha512_file(path: PathLike):
     return running.hexdigest()
 
 
-def build_icons(path: PathLike, icons: PathLike):
+def package_icons(path: PathLike, icons: PathLike):
     """Generate the icon set given a base image."""
 
     from PIL import Image
@@ -68,10 +54,10 @@ def build_icons(path: PathLike, icons: PathLike):
         resized2.save(icons.joinpath(f"icon_{size}x{size}@2.png"))
 
 
-def build_manifest(package: PathLike, manifest: PathLike):
+def package_manifest(package: PathLike, manifest: PathLike):
     """Get the SHA256 sums of all of the items in the package."""
 
-    # Build the manifest dictionary with everything
+    # Package the manifest dictionary with everything
     output = {}
     files = (
         os.path.join(dp, file)
@@ -86,8 +72,8 @@ def build_manifest(package: PathLike, manifest: PathLike):
         json.dump(output, file, indent=2)
 
 
-def build_signature(manifest: PathLike, certificates: PathLike, package: PathLike):
-    """Build the signature file for the package."""
+def package_signature(manifest: PathLike, certificates: PathLike, package: PathLike):
+    """Package the signature file for the package."""
 
     # Read the certificates
     with open(certificates, "rb") as file:
@@ -127,7 +113,7 @@ def build_signature(manifest: PathLike, certificates: PathLike, package: PathLik
         file.write(der)
 
 
-def build(namespace) -> PathLike:
+def package(namespace) -> PathLike:
     """Generate a full push package."""
 
     # Make sure the package exists
@@ -144,7 +130,7 @@ def build(namespace) -> PathLike:
         print("Icon file does not exist!")
         raise RuntimeError
     elif os.path.isfile(namespace.icon):
-        build_icons(namespace.icon, icons)
+        package_icons(namespace.icon, icons)
     else:
         shutil.rmtree(icons)
         shutil.copytree(namespace.icon, icons)
@@ -152,45 +138,12 @@ def build(namespace) -> PathLike:
     # Copy website metadata
     shutil.copyfile(namespace.website, package.joinpath("website.json"))
 
-    # Build the manifest
+    # Package the manifest
     manifest = package.joinpath("manifest.json")
-    build_manifest(package, manifest)
+    package_manifest(package, manifest)
 
-    # Build the package signature
-    build_signature(manifest, namespace.certificates, package)
+    # Package the package signature
+    package_signature(manifest, namespace.certificates, package)
 
     shutil.make_archive("pushPackage", "zip", package)
     return "pushPackage.zip"
-
-
-def interactive():
-    """Run the packager."""
-
-    from argparse import ArgumentParser
-
-    try:
-
-        # Create the parent parser
-        parser = ArgumentParser()
-        subparsers = parser.add_subparsers(help="packager modes", dest="command")
-        subparsers.required = True
-
-        # Create the generator parser
-        build_parser = subparsers.add_parser("build", help="generate a static push package")
-        build_parser.add_argument("-i", "--icon", dest="icon", help=HELP_IMAGE)
-        build_parser.add_argument("-w", "--website", dest="website", required=True, help=HELP_WEBSITE)
-        build_parser.add_argument("-c", "--certificates", dest="certificates", required=True, help=HELP_CERTIFICATES)
-
-        # Create the server parser
-        server_parser = subparsers.add_parser("serve", help="serve the push package")
-
-        # Parse args and delegate
-        namespace = parser.parse_args()
-        if namespace is None:
-            return
-        if namespace.command == "build":
-            build(namespace)
-
-    # The error should be printed before this happens
-    except RuntimeError:
-        return
