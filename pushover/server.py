@@ -6,8 +6,7 @@ app = Flask(__name__)
 
 @app.route("/v1/pushPackages/web.com.noahbkim", methods=["POST"])
 def get():
-    response = send_file("pushPackage.zip")
-    response.headers["Content-type"] = "application/zip"
+    response = send_file("../pushPackage.zip")
     return response
 
 
