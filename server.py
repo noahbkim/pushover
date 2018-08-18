@@ -1,5 +1,7 @@
-from pushover import get_config, build_package
+from argparse import ArgumentParser
 from flask import Flask, request, send_file
+
+from pushover import get_config, build_package
 
 import logging
 logging.basicConfig(
@@ -13,36 +15,48 @@ logging.basicConfig(
 app = Flask(__name__)
 
 
-@app.route("/v2/pushPackages/web.com.noahbkim", methods=("POST",))
+# Create the parent parser
+parser = ArgumentParser()
+parser.add_argument("-c", "--config", dest="config", default=None, help="custom pushover config")
+
+# Parse args and delegate
+namespace = parser.parse_args()
+app.config["config"] = config = get_config(namespace.config)
+app.debug = True
+
+# Grab the app ID
+push_id = config["website"]["websitePushID"]
+
+
+@app.route("/v2/pushPackages/" + push_id, methods=("POST",))
 def get():
+    """Called when a user might subscribe to the notifications."""
+
     config = app.config["config"]
     build_package(config)
     return send_file("build/package.zip")
 
 
+@app.route("/v2/devices/<device_token>/registrations/" + push_id, methods=("POST", "DELETE"))
+def register(device_token):
+    """Called when a user registers or unregisters."""
+
+    if request.method == "POST":
+        logging.info(f"User {device_token} has registered!")
+    else:
+        logging.info(f"User {device_token} has unregistered!")
+    return ""
+
+
 @app.route("/v1/log", methods=("POST",))
 def log():
+    """Called when Safari encounters an error."""
+
     if request.json and "logs" in request.json:
         for error in request.json["logs"]:
             logging.error(error)
     return ""
 
 
-def command_line():
-    """Run the command line prompt."""
-
-    from argparse import ArgumentParser
-
-    # Create the parent parser
-    parser = ArgumentParser()
-    parser.add_argument("-c", "--config", dest="config", default=None, help="custom pushover config")
-
-    # Parse args and delegate
-    namespace = parser.parse_args()
-    app.config["config"] = get_config(namespace.config)
-    app.debug = True
-    app.run(port=5000)
-
-
 if __name__ == "__main__":
-    command_line()
+    app.run(port=5000)
