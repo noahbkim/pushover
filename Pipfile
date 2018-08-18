@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 pillow = "*"
 pyopenssl = "*"
+pyyaml = "*"
 
 [dev-packages]
 flask = "*"
