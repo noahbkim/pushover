@@ -35,7 +35,7 @@ message = json.dumps({
 
 hostname = "ssl://gateway.push.apple.com:2195"
 context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-context.load_verify_locations(cadata=raw)
+context.load_verify_locations(cafile="files/intermediate.pem")
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
     with context.wrap_socket(sock, server_hostname=hostname) as ssock:
