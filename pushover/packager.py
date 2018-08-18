@@ -54,16 +54,19 @@ def package_manifest(package: PathLike, manifest: PathLike):
     # Package the manifest dictionary with everything
     output = {}
     files = (
-        os.path.join(dp, file)
+        str(os.path.join(dp, file))
         for dp, dn, files in os.walk(package)
         for file in files
         if not file.startswith("."))
     for file in files:
-        output[file] = {"hashType": "sha512", "hashValue": sha512_file(file)}
+        name = file.split(os.sep, 1)[1]
+        output[name] = {"hashType": "sha512", "hashValue": sha512_file(file)}
 
     # Write to file
     with open(manifest, "w") as file:
-        json.dump(output, file, indent=2)
+        raw = json.dumps(output, indent=4)
+        raw = raw.replace("/", "\\/")
+        file.write(raw)
 
 
 def package_signature(manifest: PathLike, certificates: PathLike, package: PathLike):
