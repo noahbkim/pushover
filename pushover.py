@@ -136,16 +136,24 @@ def make_manifest(build: Path, manifest: Path):
         file.write(raw)
 
 
-def make_signature(config: dict, manifest: Path, certificates: Path, signature: Path):
-    """Package the signature file for the package."""
+def load_certificates(config: dict):
+    """Load the PKCS12 certificates object."""
 
-    logging.debug("signing the manifest...")
+    # Get the certificate path and sign the manifest
+    try:
+        certificates = Path(config["files"]["certificatesPath"])
+    except KeyError:
+        print("Error locating certificatesPath in configuration!")
+        raise RuntimeError
+    except TypeError:
+        print("Missing certificatesPath in configuration!")
+        raise RuntimeError
 
     # Read the certificates
     with certificates.open("rb") as file:
         raw = file.read()
     try:
-        p12 = crypto.load_pkcs12(raw)
+        return crypto.load_pkcs12(raw)
     except crypto.Error:
 
         # Check if the config has a certificatesPassword
@@ -154,7 +162,15 @@ def make_signature(config: dict, manifest: Path, certificates: Path, signature: 
         else:
             import getpass
             password = getpass.getpass("Enter the password to your developer certificates: ").encode()
-        p12 = crypto.load_pkcs12(raw, password)
+        return crypto.load_pkcs12(raw, password)
+
+
+def make_signature(config: dict, manifest: Path, signature: Path):
+    """Package the signature file for the package."""
+
+    logging.debug("signing the manifest...")
+
+    p12 = load_certificates(config)
 
     # https://stackoverflow.com/questions/33634379/pkcs-7-detached-signature-with-python-and-pyopenssl/33726421#33726421
     # How the fuck did this guy even figure this out?
@@ -208,16 +224,7 @@ def build_package(config: dict, authentication_token: str=None):
     make_website(config, website_path, authentication_token=authentication_token)
     make_manifest(source_path, manifest_path)
 
-    # Get the certificate path and sign the manifest
-    try:
-        certificates = Path(config["files"]["certificatesPath"])
-    except KeyError:
-        print("Error locating certificatesPath in configuration!")
-        raise RuntimeError
-    except TypeError:
-        print("Missing certificatesPath in configuration!")
-        raise RuntimeError
-    make_signature(config, manifest_path, certificates, signature_path)
+    make_signature(config, manifest_path, signature_path)
 
     # Zip everything up
     shutil.make_archive("package", "zip", root_dir=source_path)
