@@ -1,0 +1,12 @@
+files:
+  certificatesPath: files/certificates.p12
+  certificatesPassword: i hope this works
+  iconsPath: files/icon.iconset
+
+website:
+  websiteName: noahbkim
+  websitePushID: web.com.noahbkim
+  webServiceURL: https://push.noahbkim.com
+  urlFormatString:  https://noahbkim.com/%@/
+  allowedDomains:
+    - https://noahbkim.com
