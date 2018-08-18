@@ -37,7 +37,7 @@ def get():
     return send_file("build/package.zip")
 
 
-@app.route("/v2/devices/<device_token>/registrations/" + push_id, methods=("POST", "DELETE"))
+@app.route("/v1/devices/<device_token>/registrations/" + push_id, methods=("POST", "DELETE"))
 def register(device_token):
     """Called when a user registers or unregisters."""
 
