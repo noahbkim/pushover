@@ -41,9 +41,17 @@ def register(device_token):
     """Called when a user registers or unregisters."""
 
     if request.method == "POST":
-        logging.info(f"User {device_token} has registered!")
+        logging.info(f"User {device_token[:8]}... has registered!")
+        with open("devices.txt", "a") as file:
+            file.write(device_token + "\n")
     else:
-        logging.info(f"User {device_token} has unregistered!")
+        logging.info(f"User {device_token[:8]}... has unregistered!")
+        with open("devices.txt") as file:
+            lines = file.readlines()
+        with open("devices.txt", "w") as file:
+            for line in lines:
+                if not line.startswith(device_token):
+                    file.write(line)
     return ""
 
 
