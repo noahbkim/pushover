@@ -101,7 +101,7 @@ def make_website(config: dict, website: Path, authentication_token=None):
     except KeyError:
         print("Error locating website metadata in configuration!")
         raise RuntimeError
-    base["authenticationToken"] = authentication_token or ""
+    base["authenticationToken"] = authentication_token or "apple please hire me"
 
     # Write to the build directory
     with website.open("w") as file:

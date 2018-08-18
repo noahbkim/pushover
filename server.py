@@ -23,7 +23,8 @@ def get():
 @app.route("/v1/log", methods=("POST",))
 def log():
     if request.json and "logs" in request.json:
-        logging.error(request.json["logs"])
+        for error in request.json["logs"]:
+            logging.error(error)
     return ""
 
 
