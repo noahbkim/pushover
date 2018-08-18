@@ -28,7 +28,6 @@ PathLike = Union[Path, str]
 
 CONFIGURATION_PATH = Path(os.getcwd()).joinpath("pushover.yml")
 BUILD_PATH = Path(os.getcwd()).joinpath("build")
-SOURCE_PATH = BUILD_PATH.joinpath("source")
 
 
 DEFAULT_CONFIGURATION = """\
@@ -189,11 +188,12 @@ def build_package(config: dict, authentication_token: str=None):
     """Build a push package with an optional authenticationToken."""
 
     # Figure out some paths
-    source_path = SOURCE_PATH
+    build_path = BUILD_PATH
+    source_path = build_path.joinpath("source")
     website_path = source_path.joinpath("website.json")
     manifest_path = source_path.joinpath("manifest.json")
     signature_path = source_path.joinpath("signature")
-    package_path = BUILD_PATH.joinpath("package.zip")
+    package_path = build_path.joinpath("package.zip")
 
     # Create the stage
     logging.debug("clearing and creating build directory")
@@ -220,7 +220,7 @@ def build_package(config: dict, authentication_token: str=None):
     make_signature(config, manifest_path, certificates, signature_path)
 
     # Zip everything up
-    shutil.make_archive("package", "zip")
+    shutil.make_archive("package", "zip", root_dir=source_path)
     try:
         shutil.rmtree(package_path)
     except FileNotFoundError:
