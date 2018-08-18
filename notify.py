@@ -60,6 +60,8 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
             for line in file:
                 device = line.strip()
 
+                # https://github.com/djacobs/PyAPNs/blob/master/apns.py
+
                 # Pack the device
                 device_pack = binascii.a2b_hex(device)
                 device_payload = struct.pack(">H", len(device_pack)) + device_pack
