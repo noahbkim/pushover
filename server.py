@@ -21,7 +21,7 @@ parser.add_argument("-c", "--config", dest="config", default=None, help="custom 
 
 # Parse args and delegate
 namespace = parser.parse_args()
-app.config["config"] = config = get_config(namespace.config)
+config = get_config(namespace.config)
 app.debug = True
 
 # Grab the app ID
@@ -32,7 +32,6 @@ push_id = config["website"]["websitePushID"]
 def get():
     """Called when a user might subscribe to the notifications."""
 
-    config = app.config["config"]
     build_package(config)
     return send_file("build/package.zip")
 
@@ -52,6 +51,7 @@ def register(device_token):
 def log():
     """Called when Safari encounters an error."""
 
+    print(request.json)
     if request.json and "logs" in request.json:
         for error in request.json["logs"]:
             logging.error(error)

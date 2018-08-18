@@ -17,28 +17,36 @@ parser.add_argument("-c", "--config", dest="config", default=None, help="custom 
 namespace = parser.parse_args()
 config = get_config(namespace.config)
 p12 = load_certificates(config)
-raw = crypto.dump_certificate(crypto.FILETYPE_PEM, p12.get_certificate()).decode()
+with open("files/certificates.pem", "wb") as file:
+    file.write(crypto.dump_certificate(crypto.FILETYPE_PEM, p12.get_certificate()))
+    file.write(crypto.dump_privatekey(crypto.FILETYPE_PEM, p12.get_privatekey()))
 
 title = input("Title: ")
 body = input("Body: ")
 args = map(lambda x: x.strip(), input("Slug: ").split(","))
 
-message = json.dumps({
+message = json.dumps(
+{
     "aps": {
-        "title": title,
-        "body": body,
-        "action": "View"
+        "alert": {
+            "title": title,
+            "body": body,
+            "action": "View"
+        },
+        "url-args": tuple(args),
     },
-    "url-args": tuple(args),
 })
 
 
+print(message)
+
 hostname = "ssl://gateway.push.apple.com:2195"
-context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
-context.load_verify_locations(cafile="files/intermediate.pem")
+context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
+# context.load_verify_locations(cafile="files/intermediate.pem")
+context.load_cert_chain("files/certificates.pem")
 
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
     with context.wrap_socket(sock, server_hostname=hostname) as ssock:
         ssock.connect(("gateway.push.apple.com", 2195))
-        ssock.sendall(message.encode())
+        print(ssock.write(message.encode()))
         ssock.close()
