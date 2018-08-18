@@ -21,14 +21,8 @@ PathLike = Union[Path, str]
 def sha512_file(path: PathLike):
     """Get the sha256 checksum of a file."""
 
-    running = sha512()
     with open(path, "rb") as file:
-        while True:
-            data = file.read(65536)
-            if not data:
-                break
-            running.update(data)
-    return running.hexdigest()
+        return sha512(file.read()).hexdigest()  # This should iterate large blocks but the files are small
 
 
 def package_icons(path: PathLike, icons: PathLike):
@@ -51,7 +45,7 @@ def package_icons(path: PathLike, icons: PathLike):
         resized = icon.resize((size, size), resample=Image.LANCZOS)
         resized2 = resized.resize((size * 2, size * 2), resample=0)
         resized.save(icons.joinpath(f"icon_{size}x{size}.png"))
-        resized2.save(icons.joinpath(f"icon_{size}x{size}@2.png"))
+        resized2.save(icons.joinpath(f"icon_{size}x{size}@2x.png"))
 
 
 def package_manifest(package: PathLike, manifest: PathLike):
