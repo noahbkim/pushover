@@ -8,8 +8,5 @@ __pycache__
 
 # Testing data
 files
-certificates.p12
-icon.png
-website.json
-pushPackage*
 build
+devices.txt

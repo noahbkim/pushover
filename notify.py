@@ -4,6 +4,7 @@ import ssl
 import json
 import socket
 import binascii
+import struct
 from pathlib import Path
 from OpenSSL import crypto
 from argparse import ArgumentParser
@@ -44,16 +45,28 @@ message = json.dumps({
     },
 })
 
-# Pack the message
-
-
-#
+# Open an SSL context
 hostname = "ssl://gateway.push.apple.com:2195"
 context = ssl.create_default_context(ssl.Purpose.CLIENT_AUTH)
 context.load_cert_chain("files/certificates.pem")
 
+# Open an SSL socket
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM, 0) as sock:
     with context.wrap_socket(sock, server_hostname=hostname) as ssock:
         ssock.connect(("gateway.push.apple.com", 2195))
-        print(ssock.write(message.encode()))
+
+        # Send a message to all devices
+        with open("devices.txt") as file:
+            for line in file:
+                device = line.strip()
+
+                # Pack the device
+                device_pack = binascii.a2b_hex(device)
+                device_payload = struct.pack(">H", len(device_pack)) + device_pack
+                message_payload = struct.pack(">H", len(message)) + message.encode()
+                payload = b"\x00" + device_payload + message_payload
+
+                # Send
+                print("Sent", ssock.write(payload), "bytes!")
+
         ssock.close()

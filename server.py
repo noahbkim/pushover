@@ -36,23 +36,27 @@ def get():
     return send_file("build/package.zip")
 
 
-@app.route("/v1/devices/<device_token>/registrations/" + push_id, methods=("POST", "DELETE"))
+@app.route("/v1/devices/<device_token>/registrations/" + push_id, methods=("POST",))
 def register(device_token):
-    """Called when a user registers or unregisters."""
+    """Called when a user registers."""
 
-    if request.method == "POST":
-        logging.info(f"User {device_token[:8]}... has registered!")
-        with open("devices.txt", "a") as file:
-            file.write(device_token + "\n")
-    else:
-        logging.info(f"User {device_token[:8]}... has unregistered!")
-        with open("devices.txt") as file:
-            lines = file.readlines()
-        with open("devices.txt", "w") as file:
-            for line in lines:
-                if not line.startswith(device_token):
-                    file.write(line)
+    logging.info(f"user {device_token[:8]}... has registered!")
+    with open("devices.txt", "a") as file:
+        file.write(device_token + "\n")
     return ""
+
+
+@app.route("/v1/devices/<device_token>/registrations/" + push_id, methods=("DELETE",))
+def unregister(device_token):
+    """Called when a user unregisters."""
+
+    logging.info(f"user {device_token[:8]}... has unregistered!")
+    with open("devices.txt") as file:
+        lines = file.readlines()
+    with open("devices.txt", "w") as file:
+        for line in lines:
+            if not line.startswith(device_token):
+                file.write(line)
 
 
 @app.route("/v1/log", methods=("POST",))
