@@ -69,14 +69,6 @@ def get_config(path: PathLike=None):
 def copy_icons(config: dict, build: Path):
     """Assemble and examine all configured files into the build path."""
 
-    # Create the stage
-    logging.debug("clearing and creating build directory")
-    try:
-        shutil.rmtree(str(build))
-    except FileNotFoundError:
-        pass
-    os.makedirs(str(build))
-
     # Make the icon directory
     icons = build.joinpath("icon.iconset")
     os.makedirs(str(icons))
@@ -201,6 +193,15 @@ def build_package(config: dict, authentication_token: str=None):
     website_path = source_path.joinpath("website.json")
     manifest_path = source_path.joinpath("manifest.json")
     signature_path = source_path.joinpath("signature")
+    package_path = BUILD_PATH.joinpath("package.zip")
+
+    # Create the stage
+    logging.debug("clearing and creating build directory")
+    try:
+        shutil.rmtree(BUILD_PATH)
+    except FileNotFoundError:
+        pass
+    os.makedirs(str(BUILD_PATH))
 
     # Copy icons, make website, make manifest
     copy_icons(config, source_path)
@@ -220,6 +221,10 @@ def build_package(config: dict, authentication_token: str=None):
 
     # Zip everything up
     shutil.make_archive("package", "zip")
+    try:
+        shutil.rmtree(package_path)
+    except FileNotFoundError:
+        pass
     shutil.move("package.zip", BUILD_PATH)
 
 
