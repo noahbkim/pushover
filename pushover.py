@@ -8,8 +8,6 @@ through Safari. See the README for more information on setup.
 
 import os
 import yaml
-from pathlib import Path
-from typing import Union
 import shutil
 import json
 from OpenSSL import crypto
@@ -30,6 +28,7 @@ PathLike = Union[Path, str]
 
 CONFIGURATION_PATH = Path(os.getcwd()).joinpath("pushover.yml")
 BUILD_PATH = Path(os.getcwd()).joinpath("build")
+SOURCE_PATH = BUILD_PATH.joinpath("source")
 
 
 DEFAULT_CONFIGURATION = """\
@@ -198,15 +197,15 @@ def build_package(config: dict, authentication_token: str=None):
     """Build a push package with an optional authenticationToken."""
 
     # Figure out some paths
-    build_path = BUILD_PATH
-    website_path = build_path.joinpath("website.json")
-    manifest_path = build_path.joinpath("manifest.json")
-    signature_path = build_path.joinpath("signature")
+    source_path = SOURCE_PATH
+    website_path = source_path.joinpath("website.json")
+    manifest_path = source_path.joinpath("manifest.json")
+    signature_path = source_path.joinpath("signature")
 
     # Copy icons, make website, make manifest
-    copy_icons(config, build_path)
+    copy_icons(config, source_path)
     make_website(config, website_path, authentication_token=authentication_token)
-    make_manifest(build_path, manifest_path)
+    make_manifest(source_path, manifest_path)
 
     # Get the certificate path and sign the manifest
     try:
@@ -220,7 +219,8 @@ def build_package(config: dict, authentication_token: str=None):
     make_signature(config, manifest_path, certificates, signature_path)
 
     # Zip everything up
-    shutil.make_archive("pushPackage", "zip", build_path)
+    shutil.make_archive("package", "zip")
+    shutil.move("package.zip", BUILD_PATH)
 
 
 def command_line():
