@@ -58,11 +58,11 @@ def get_config(path: PathLike=None):
         with open(path) as file:
             return yaml.load(file)
     except FileNotFoundError:
-        logging.info("configuration file not found, creating...")
+        logging.info("configuration file not found, generating...")
         with open(path, "w") as file:
             file.write(DEFAULT_CONFIGURATION)
-        with open(path) as file:
-            return yaml.load(file)
+        print("Fill out the pushover.yml configuration file to continue!")
+        raise RuntimeError
 
 
 def copy_icons(config: dict, build: Path):

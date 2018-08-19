@@ -21,8 +21,13 @@ parser.add_argument("-c", "--config", dest="config", default=None, help="custom 
 
 # Parse args and delegate
 namespace = parser.parse_args()
-config = get_config(namespace.config)
-app.debug = True
+
+try:
+    config = get_config(namespace.config)
+except RuntimeError:
+    import sys
+    sys.exit(0)
+
 
 # Grab the app ID
 push_id = config["website"]["websitePushID"]
